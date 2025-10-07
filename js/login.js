@@ -1,10 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("loginForm");
   const message = document.getElementById("message");
-  const loginBtn = document.getElementById("loginBtn");
+  const loginBtn = document.querySelector("button");
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    
 
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
@@ -13,13 +14,13 @@ document.addEventListener("DOMContentLoaded", () => {
     message.style.color = "#333";
 
     if (!username || !password) {
-      message.textContent = "Isi semua field terlebih dahulu.";
+      message.textContent = "Invalid Username";
       message.style.color = "red";
       return;
     }
 
     loginBtn.disabled = true;
-    message.innerHTML = `Sedang memeriksa <span class="loading"></span>`;
+    loginBtn.innerHTML = `<div class="loading"></div>`;
 
     try {
       const res = await fetch("https://dummyjson.com/auth/login", {
@@ -30,17 +31,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const data = await res.json();
 
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       if (!res.ok) {
-        throw new Error(data.message || "Login gagal!");
+        throw new Error(data.message || "Login failed");
       }
 
       localStorage.setItem("firstName", data.firstName);
       localStorage.setItem("token", data.token);
 
       message.style.color = "green";
-      message.textContent = `Selamat datang, ${data.firstName}!`;
+      message.textContent = `Welcome, ${data.firstName}!`;
 
-      console.log("Login berhasil:", data);
+      console.log("Login success:", data);
 
       /*
       setTimeout(() => {
@@ -50,10 +53,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     } catch (error) {
       message.style.color = "red";
-      message.textContent = error.message || "Terjadi kesalahan saat login.";
+      message.textContent = error.message || "An error occurred during login";
       console.error(error);
     } finally {
       loginBtn.disabled = false;
+      loginBtn.textContent = "Login";
     }
   });
 });
