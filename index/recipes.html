@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recipes | RecipIT</title>
+  <link rel="stylesheet" href="../css/recipes.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <h2>Recipe Collection</h2>
+    <div class="nav-right">
+      <span id="username"></span>
+      <button id="logoutBtn">Logout</button>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <h1>Your Recipe Collection</h1>
+    <p>Discover and manage your favorite recipes</p>
+  </section>
+
+  <section class="search-filter">
+    <input type="text" id="searchInput" placeholder="Search recipes..." />
+    <select name="cuisineFilter" id="cuisineFilter">
+      <option value="">All Cuisines</option>
+    </select>
+  </section>
+
+  <main id="recipesContainer" class="recipes-container"></main>
+
+  <button id="showMoreBtn" class="show-more">Show More</button>
+
+  <script src="../js/recipes.js"></script>
+</body>
+</html>

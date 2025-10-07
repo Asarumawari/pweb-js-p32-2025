@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    
 
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
@@ -30,26 +29,29 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       const data = await res.json();
+      console.log(data);
 
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // simulasi loading agar efek spinner terlihat
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       if (!res.ok) {
         throw new Error(data.message || "Login failed");
       }
 
+      // simpan data user di localStorage
       localStorage.setItem("firstName", data.firstName);
       localStorage.setItem("token", data.token);
+      localStorage.setItem("username", data.username);
 
       message.style.color = "green";
       message.textContent = `Welcome, ${data.firstName}!`;
 
       console.log("Login success:", data);
 
-      /*
+      // 🟢 Tambahkan redirect di sini:
       setTimeout(() => {
         window.location.href = "recipes.html";
       }, 1000);
-      */
 
     } catch (error) {
       message.style.color = "red";
