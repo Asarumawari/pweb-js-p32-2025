@@ -88,22 +88,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function applyFilters() {
     const cuisine = cuisineFilter.value;
+    const query = searchInput.value.toLowerCase().trim();
 
-    if (isSearching) {
-      filteredRecipes = allRecipes;
-    } else {
-      const query = searchInput.value.toLowerCase().trim();
-      filteredRecipes = allRecipes.filter(recipe => {
-        const matchesSearch = !query ||
-          recipe.name.toLowerCase().includes(query) ||
-          recipe.ingredients.some(ing => ing.toLowerCase().includes(query));
-        return matchesSearch;
-      });
-    }
+    // Filter berdasarkan search query dan cuisine
+    filteredRecipes = allRecipes.filter(recipe => {
+      // Cek apakah cocok dengan search query
+      const matchesSearch = !query || 
+        recipe.name.toLowerCase().includes(query) ||
+        recipe.ingredients.some(ing => ing.toLowerCase().includes(query)) ||
+        (recipe.tags && recipe.tags.some(tag => tag.toLowerCase().includes(query))) ||
+        (recipe.cuisine && recipe.cuisine.toLowerCase().includes(query));
 
-    filteredRecipes = filteredRecipes.filter(recipe =>
-      !cuisine || recipe.cuisine === cuisine
-    );
+      // Cek apakah cocok dengan cuisine filter
+      const matchesCuisine = !cuisine || recipe.cuisine === cuisine;
+
+      return matchesSearch && matchesCuisine;
+    });
 
     displayed = 0;
     renderRecipes(true);
@@ -169,7 +169,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     showMoreBtn.style.display = filteredRecipes.length > displayed ? 'block' : 'none';
   }
 
-  const debouncedSearch = debounce(() => { fetchRecipes(searchInput.value.trim()); }, 500);
+  // Ganti debouncedSearch untuk menggunakan applyFilters saja
+  const debouncedSearch = debounce(applyFilters, 500);
+  
   searchInput.addEventListener("input", debouncedSearch);
   cuisineFilter.addEventListener("change", applyFilters);
   showMoreBtn.addEventListener("click", () => renderRecipes(false));
