@@ -31,14 +31,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
       console.log(data);
 
-      // simulasi loading agar efek spinner terlihat
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       if (!res.ok) {
         throw new Error(data.message || "Login failed");
       }
 
-      // simpan data user di localStorage
       localStorage.setItem("firstName", data.firstName);
       localStorage.setItem("token", data.token);
       localStorage.setItem("username", data.username);
@@ -48,7 +46,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       console.log("Login success:", data);
 
-      // 🟢 Tambahkan redirect di sini:
       setTimeout(() => {
         window.location.href = "recipes.html";
       }, 1000);
