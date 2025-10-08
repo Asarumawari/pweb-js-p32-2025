@@ -35,6 +35,10 @@ body {
   color: #555;
 }
 
+.logo {
+  cursor: pointer;
+}
+
 #logoutBtn {
   background-color: #ff7043;
   color: white;
@@ -249,7 +253,6 @@ body {
   grid-column: 1 / -1;
 }
 
-/* Modal Styles */
 .modal {
   display: none;
   position: fixed;
@@ -464,7 +467,6 @@ body {
   font-size: 0.8rem;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .navbar {
     padding: 1rem;
