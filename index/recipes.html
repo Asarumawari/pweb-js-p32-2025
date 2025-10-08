@@ -8,7 +8,7 @@
 </head>
 <body>
   <nav class="navbar">
-    <h2>Recipe Collection</h2>
+    <h2>RecipeIT Collection</h2>
     <div class="nav-right">
       <span id="username"></span>
       <button id="logoutBtn">Logout</button>
@@ -16,7 +16,7 @@
   </nav>
 
   <section class="hero">
-    <h1>Your Recipe Collection</h1>
+    <h1>Your RecipeIT Collection</h1>
     <p>Discover and manage your favorite recipes</p>
   </section>
 
@@ -30,6 +30,32 @@
   <main id="recipesContainer" class="recipes-container"></main>
 
   <button id="showMoreBtn" class="show-more">Show More</button>
+
+  <!-- Modal Recipe -->
+  <div id="recipeModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" id="closeModal">&times;</span>
+      
+      <!-- Konten modal yang akan diisi oleh JavaScript -->
+      <h2></h2>
+      <div class="recipe-header">
+        <img src="" alt="">
+        <div class="recipe-info">
+          <!-- akan diisi oleh JavaScript -->
+        </div>
+      </div>
+
+      <div class="rating"></div>
+
+      <div class="tags"></div>
+
+      <h3>Ingredients</h3>
+      <ul></ul>
+
+      <h3>Instructions</h3>
+      <ol></ol>
+    </div>
+  </div>
 
   <script src="../js/recipes.js"></script>
 </body>

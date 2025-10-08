@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     message.style.color = "#333";
 
     if (!username || !password) {
-      message.textContent = "Invalid Username";
+      message.textContent = "Oops! The username or password you entered is incorrect";
       message.style.color = "red";
       return;
     }

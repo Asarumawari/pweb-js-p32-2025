@@ -30,68 +30,43 @@ document.addEventListener("DOMContentLoaded", async () => {
   const searchInput = document.getElementById("searchInput");
   const cuisineFilter = document.getElementById("cuisineFilter");
   const showMoreBtn = document.getElementById("showMoreBtn");
-  const loadingIndicator = document.getElementById("loading");
+
+  const modal = document.getElementById("recipeModal");
+  const closeBtn = document.getElementById("closeModal");
 
   let allRecipes = [];
-  let displayedRecipes = [];
+  let filteredRecipes = [];
   let displayed = 0;
-  let skip = 0;
-  const limit = 5;
-  let currentQuery = null;
-  let hasMore = true;
+  const perPage = 8;
+  let isSearching = false;
 
   function setLoading(isLoading) {
-    if (loadingIndicator) loadingIndicator.style.display = isLoading ? 'block' : 'none';
+    // optional: implement loading indicator if ada
   }
 
   function showError(message) {
     recipesContainer.innerHTML = `<div class="error">Error: ${message}</div>`;
   }
 
-  async function showProductDetails(recipeId) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/recipes/${recipeId}`);
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      const recipe = await res.json();
-      alert(`Recipe: ${recipe.name}\n\nIngredients:\n- ${recipe.ingredients.join("\n- ")}\n\nInstructions:\n${recipe.instructions}`);
-    } catch (error) {
-      console.error("Fetch error:", error);
-      alert("Failed to load recipe details. Please try again later.");
-    }
-  }
-  // Expose to global scope for inline onclick
-  window.showProductDetails = showProductDetails;
-
-  async function fetchRecipes(query = null, reset = true) {
-    if (reset) {
-      allRecipes = [];
-      skip = 0;
-      hasMore = true;
-      displayedRecipes = [];
-      recipesContainer.innerHTML = '';
-    }
-
+  async function fetchRecipes(query = null) {
     setLoading(true);
     try {
-      currentQuery = query;
-      let url = `${API_BASE_URL}/recipes?limit=${limit}&skip=${skip}`;
+      let url = `${API_BASE_URL}/recipes?limit=100`;
       if (query) {
-        url = `${API_BASE_URL}/recipes/search?q=${encodeURIComponent(query)}&limit=${limit}&skip=${skip}`;
+        url = `${API_BASE_URL}/recipes/search?q=${encodeURIComponent(query)}`;
+        isSearching = true;
+      } else {
+        isSearching = false;
       }
-      
+
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       const data = await res.json();
-      
-      const newRecipes = Array.isArray(data.recipes) ? data.recipes : [];
-      allRecipes = [...allRecipes, ...newRecipes];
-      
-      if (newRecipes.length < limit) {
-        hasMore = false;
-      }
-      
-      skip += limit;
-      renderRecipes();
+      allRecipes = data.recipes || [];
+
+      if (!isSearching) populateCuisineFilter();
+
+      applyFilters();
     } catch (error) {
       console.error("Fetch error:", error);
       showError("Failed to load recipes. Please try again later.");
@@ -100,10 +75,77 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  function renderRecipes() {
+  function populateCuisineFilter() {
+    cuisineFilter.innerHTML = '<option value="">All Cuisines</option>';
+    const cuisines = [...new Set(allRecipes.map(r => r.cuisine))].filter(Boolean);
+    cuisines.forEach(cuisine => {
+      const opt = document.createElement("option");
+      opt.value = cuisine;
+      opt.textContent = cuisine;
+      cuisineFilter.appendChild(opt);
+    });
+  }
+
+  function applyFilters() {
+    const cuisine = cuisineFilter.value;
+
+    if (isSearching) {
+      filteredRecipes = allRecipes;
+    } else {
+      const query = searchInput.value.toLowerCase().trim();
+      filteredRecipes = allRecipes.filter(recipe => {
+        const matchesSearch = !query ||
+          recipe.name.toLowerCase().includes(query) ||
+          recipe.ingredients.some(ing => ing.toLowerCase().includes(query));
+        return matchesSearch;
+      });
+    }
+
+    filteredRecipes = filteredRecipes.filter(recipe =>
+      !cuisine || recipe.cuisine === cuisine
+    );
+
+    displayed = 0;
+    renderRecipes(true);
+  }
+
+  function openModal(recipe) {
+    modal.style.display = "flex";
+    modal.querySelector("h2").textContent = recipe.name;
+    modal.querySelector(".modal-content img").src = recipe.image || 'placeholder.jpg';
+    modal.querySelector(".recipe-info").innerHTML = `
+      <div><strong>PREP TIME</strong><br>${recipe.prepTimeMinutes || 0} mins</div>
+      <div><strong>COOK TIME</strong><br>${recipe.cookTimeMinutes || 0} mins</div>
+      <div><strong>SERVINGS</strong><br>${recipe.servings || 4}</div>
+      <div><strong>DIFFICULTY</strong><br>${recipe.difficulty || 'Medium'}</div>
+      <div><strong>CUISINE</strong><br>${recipe.cuisine || 'Unknown'}</div>
+      <div><strong>CALORIES</strong><br>${recipe.calories || 0} cal/serving</div>
+    `;
+    modal.querySelector(".rating").textContent = `⭐ ${recipe.rating || 0} — ${recipe.reviews || 0} reviews`;
+    modal.querySelector(".tags").innerHTML = recipe.tags?.map(t => `<span>${t}</span>`).join(" ") || "";
+    modal.querySelector("ul").innerHTML = recipe.ingredients.map(i => `<li>${i}</li>`).join("");
+    modal.querySelector("ol").innerHTML = recipe.instructions?.map(i => `<li>${i}</li>`).join("") || "";
+  }
+
+  closeBtn.addEventListener("click", () => { modal.style.display = "none"; });
+  window.addEventListener("click", (e) => { if (e.target === modal) modal.style.display = "none"; });
+
+  function renderRecipes(reset = false) {
+    if (reset) {
+      recipesContainer.innerHTML = '';
+      displayed = 0;
+    }
+
+    const toRender = filteredRecipes.slice(0, displayed + perPage);
+
+    if (toRender.length === 0 && displayed === 0) {
+      recipesContainer.innerHTML = `<div class="no-results">No recipes found.</div>`;
+      showMoreBtn.style.display = 'none';
+      return;
+    }
+
     const fragment = document.createDocumentFragment();
-    
-    allRecipes.forEach(r => {
+    toRender.slice(displayed).forEach(r => {
       const card = document.createElement("div");
       card.className = "recipe-card";
       card.innerHTML = `
@@ -111,38 +153,26 @@ document.addEventListener("DOMContentLoaded", async () => {
         <div class="card-content">
           <h3>${r.name}</h3>
           <div class="details">
-            <span>🕒 ${r.prepTimeMinutes} mins</span>
-            <span>⭐ ${r.rating}</span>
+            <span>🕒 ${r.prepTimeMinutes || 0} mins</span>
+            <span>⭐ ${r.rating || 0}</span>
           </div>
           <p class="ingredients"><b>Ingredients:</b> ${r.ingredients.slice(0, 4).join(", ")}...</p>
         </div>
-        <button onclick="showProductDetails(${r.id})">View Full Recipe</button>
+        <button class="view-recipe-btn">View Full Recipe</button>
       `;
+      card.querySelector(".view-recipe-btn").addEventListener("click", () => openModal(r));
       fragment.appendChild(card);
     });
 
     recipesContainer.appendChild(fragment);
-    showMoreBtn.style.display = hasMore ? 'block' : 'none';
+    displayed = toRender.length;
+    showMoreBtn.style.display = filteredRecipes.length > displayed ? 'block' : 'none';
   }
 
-  const debouncedSearch = debounce(() => {
-    const query = searchInput.value.trim();
-    if (query) {
-      fetchRecipes(query, true);
-    } else {
-      fetchRecipes(null, true);
-    }
-  }, 500);
-
+  const debouncedSearch = debounce(() => { fetchRecipes(searchInput.value.trim()); }, 500);
   searchInput.addEventListener("input", debouncedSearch);
-
-  cuisineFilter.addEventListener("change", () => {
-    fetchRecipes(currentQuery, true);
-  });
-
-  showMoreBtn.addEventListener("click", () => {
-    fetchRecipes(currentQuery, false);
-  });
+  cuisineFilter.addEventListener("change", applyFilters);
+  showMoreBtn.addEventListener("click", () => renderRecipes(false));
 
   await fetchRecipes();
 });
