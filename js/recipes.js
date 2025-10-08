@@ -19,7 +19,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  document.getElementById("username").textContent = `Welcome, ${user}!`;
   const logoutBtn = document.getElementById("logoutBtn");
   logoutBtn.addEventListener("click", () => {
     localStorage.removeItem("username");
@@ -41,11 +40,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   let isSearching = false;
 
   function setLoading(isLoading) {
-    // optional: implement loading indicator if ada
+
   }
 
   function showError(message) {
     recipesContainer.innerHTML = `<div class="error">Error: ${message}</div>`;
+  }
+
+  const heroTitle = document.getElementById("heroTitle");
+   if (heroTitle) {
+   heroTitle.textContent = `Welcome, ${user}! This is your RecipIT Collection!`;
   }
 
   async function fetchRecipes(query = null) {
@@ -90,16 +94,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     const cuisine = cuisineFilter.value;
     const query = searchInput.value.toLowerCase().trim();
 
-    // Filter berdasarkan search query dan cuisine
     filteredRecipes = allRecipes.filter(recipe => {
-      // Cek apakah cocok dengan search query
       const matchesSearch = !query || 
         recipe.name.toLowerCase().includes(query) ||
         recipe.ingredients.some(ing => ing.toLowerCase().includes(query)) ||
         (recipe.tags && recipe.tags.some(tag => tag.toLowerCase().includes(query))) ||
         (recipe.cuisine && recipe.cuisine.toLowerCase().includes(query));
 
-      // Cek apakah cocok dengan cuisine filter
       const matchesCuisine = !cuisine || recipe.cuisine === cuisine;
 
       return matchesSearch && matchesCuisine;
@@ -169,7 +170,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     showMoreBtn.style.display = filteredRecipes.length > displayed ? 'block' : 'none';
   }
 
-  // Ganti debouncedSearch untuk menggunakan applyFilters saja
   const debouncedSearch = debounce(applyFilters, 500);
   
   searchInput.addEventListener("input", debouncedSearch);
