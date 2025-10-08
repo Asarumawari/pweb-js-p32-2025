@@ -12,8 +12,9 @@ document.addEventListener("DOMContentLoaded", () => {
     message.textContent = "";
     message.style.color = "#333";
 
+    // Validasi input kosong
     if (!username || !password) {
-      message.textContent = "Oops! The username or password you entered is incorrect";
+      message.textContent = "Oops! Please enter both username and password";
       message.style.color = "red";
       return;
     }
@@ -34,7 +35,14 @@ document.addEventListener("DOMContentLoaded", () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       if (!res.ok) {
-        throw new Error(data.message || "Login failed");
+        // Custom error message berdasarkan status code
+        if (res.status === 400 || res.status === 401) {
+          throw new Error("Oops! The username or password you entered is incorrect");
+        } else if (res.status === 500) {
+          throw new Error("Server error. Please try again later");
+        } else {
+          throw new Error("Login failed. Please try again");
+        }
       }
 
       localStorage.setItem("firstName", data.firstName);
@@ -52,8 +60,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     } catch (error) {
       message.style.color = "red";
-      message.textContent = error.message || "An error occurred during login";
-      console.error(error);
+      message.textContent = error.message;
+      console.error("Login error:", error);
     } finally {
       loginBtn.disabled = false;
       loginBtn.textContent = "Login";
